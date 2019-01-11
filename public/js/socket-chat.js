@@ -26,8 +26,13 @@ socket.on('disconnect', function() {
 //     mensaje: 'hola que tal'
 // })
 
-//Escuhar los mmensajes
+//Escuhar los mensajes
 socket.on('mandarMensaje', function(mensaje) {
+    console.log(mensaje);
+})
+
+//escuchar el mensaje privado
+socket.on('mensajePrivado', function(mensaje) {
     console.log(mensaje);
 })
 

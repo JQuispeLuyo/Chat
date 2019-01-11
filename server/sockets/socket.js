@@ -24,7 +24,10 @@ io.on('connection', (client) => {
 
 
     client.on('mandarMensaje', (data) => {
-        client.broadcast.emit('mandarMensaje', mensaje(data.usuario, data.mensaje))
+
+        let persona = usuarios.getPersona(client.id);
+
+        client.broadcast.emit('mandarMensaje', mensaje(persona.nombre, data.mensaje))
     })
 
 
@@ -46,5 +49,11 @@ io.on('connection', (client) => {
             listaUsuarios: usuarios.getPersonas()
         })
     });
+
+    client.on('mensajePrivado', data => {
+        let persona = usuarios.getPersona(client.id);
+        client.broadcast.to(data.para).emit('mensajePrivado', mensaje(persona.nombre, data.mensaje));
+
+    })
 
 });
