@@ -1,23 +1,50 @@
 const { io } = require('../server');
+const { Usuarios } = require('../classes/usuario');
+const { mensaje } = require('../utilidad/utilidad');
+let usuarios = new Usuarios();
 
 io.on('connection', (client) => {
 
-    console.log('User connect');
+    client.on('unirChat', (data, callback) => {
+        if (!data.usuario) {
+            return callback({
+                error: true,
+                mensaje: 'El nombre es necesario'
+            })
+        }
+        let nombre = data.usuario;
+        let personas = usuarios.agregarPersona(client.id, nombre);
 
-    //Enviar al cliente
-    client.emit('enviarmensaje', {
-        usuario: 'admin',
-        mensaje: 'bienvenido a esta app'
+        client.broadcast.emit('lista', {
+            listaUsuarios: usuarios.getPersonas()
+        })
+
+        callback(personas);
+    });
+
+
+    client.on('mandarMensaje', (data) => {
+        client.broadcast.emit('mandarMensaje', mensaje(data.usuario, data.mensaje))
     })
 
+
     client.on('disconnect', () => {
-        console.log('Usuario desconectado');
+        let userDelete = usuarios.borrarPersona(client.id);
+
+        if (!userDelete) {
+            return ({
+                error: true,
+                mensaje: 'No se encuentra el usuario en la base de datos'
+            })
+        }
+        client.broadcast.emit('salio', {
+            usuario: 'Administrador',
+            mensaje: `El usuario ${userDelete.nombre} ha abandonado el chat`
+        });
+
+        client.broadcast.emit('lista', {
+            listaUsuarios: usuarios.getPersonas()
+        })
     });
 
-    //Escuchar cliente 
-    client.on('enviarmensaje', (data, callback) => {
-        console.log(data);
-        client.broadcast.emit('enviarmensaje', data);
-        //callback()
-    });
 });
