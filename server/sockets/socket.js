@@ -6,17 +6,22 @@ let usuarios = new Usuarios();
 io.on('connection', (client) => {
 
     client.on('unirChat', (data, callback) => {
-        if (!data.usuario) {
+
+        console.log(data);
+
+        if (!data.usuario || !data.room) {
             return callback({
                 error: true,
-                mensaje: 'El nombre es necesario'
+                mensaje: 'El nombre y la sala son necesarios'
             })
         }
-        let nombre = data.usuario;
-        let personas = usuarios.agregarPersona(client.id, nombre);
 
-        client.broadcast.emit('lista', {
-            listaUsuarios: usuarios.getPersonas()
+        client.join(data.room);
+
+        let personas = usuarios.agregarPersona(client.id, data.usuario, data.room);
+
+        client.broadcast.to(data.room).emit('lista', {
+            listaUsuarios: usuarios.getPersonasPorSala(data.room)
         })
 
         callback(personas);
@@ -27,7 +32,7 @@ io.on('connection', (client) => {
 
         let persona = usuarios.getPersona(client.id);
 
-        client.broadcast.emit('mandarMensaje', mensaje(persona.nombre, data.mensaje))
+        client.broadcast.to(persona.room).emit('mandarMensaje', mensaje(persona.nombre, data.mensaje))
     })
 
 
@@ -40,13 +45,13 @@ io.on('connection', (client) => {
                 mensaje: 'No se encuentra el usuario en la base de datos'
             })
         }
-        client.broadcast.emit('salio', {
+        client.broadcast.to(userDelete.room).emit('salio', {
             usuario: 'Administrador',
             mensaje: `El usuario ${userDelete.nombre} ha abandonado el chat`
         });
 
-        client.broadcast.emit('lista', {
-            listaUsuarios: usuarios.getPersonas()
+        client.broadcast.to(userDelete.room).emit('lista', {
+            listaUsuarios: usuarios.getPersonasPorSala(userDelete.room)
         })
     });
 

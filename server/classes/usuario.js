@@ -10,13 +10,13 @@ class Usuarios {
         this.personas = [];
     }
 
-    agregarPersona(id, nombre) {
+    agregarPersona(id, nombre, room) {
 
-        let persona = { id, nombre };
+        let persona = { id, nombre, room };
 
         this.personas.push(persona);
 
-        return this.personas
+        return this.getPersonasPorSala(room)
 
     }
 
@@ -30,7 +30,11 @@ class Usuarios {
     }
 
     getPersonasPorSala(sala) {
-        //...
+        let personasPorSala = this.personas.filter(persona => {
+            return persona.room === sala;
+        });
+
+        return personasPorSala;
     }
 
     borrarPersona(id) {

@@ -1,23 +1,29 @@
 var socket = io();
 var searchParams = new URLSearchParams(window.location.search);
 
-if (!searchParams.has('name')) {
+if (!searchParams.has('name') || !searchParams.has('room')) {
     window.location = 'index.html';
-    throw new Error('El escritorio es necesario');
+    throw new Error('El el nombre y la sala son necesarios');
 }
 
 var usuario = {
-    usuario: searchParams.get('name')
+    usuario: searchParams.get('name'),
+    room: searchParams.get('room')
 }
 
-//Escuchar conecion
+//Escuchar conexión
 socket.on('connect', function() {
     console.log('conectado :D');
-
 });
-//Escuchar desconecion
+
+//Escuchar desconexión
 socket.on('disconnect', function() {
     console.log('Perdimos conexión con el servidor');
+});
+
+//Enviar info a server
+socket.emit('unirChat', usuario, function(res) {
+    console.log('Servidor', res);
 });
 
 //Enviar mensaje
@@ -31,15 +37,10 @@ socket.on('mandarMensaje', function(mensaje) {
     console.log(mensaje);
 })
 
-//escuchar el mensaje privado
+//Escuchar el mensaje privado
 socket.on('mensajePrivado', function(mensaje) {
     console.log(mensaje);
 })
-
-//Enviar info a server
-socket.emit('unirChat', usuario, function(res) {
-    console.log('Servidor', res);
-});
 
 //Persona desconectada
 socket.on('salio', (mensaje) => {
