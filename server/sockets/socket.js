@@ -24,15 +24,26 @@ io.on('connection', (client) => {
             listaUsuarios: usuarios.getPersonasPorSala(data.room)
         })
 
+        let mensajes = mensaje('Administrador', `El usuario ${data.usuario} se conecto al chat`);
+
+        client.broadcast.to(data.room).emit('entro', mensajes);
+
         callback(personas);
+
     });
 
 
-    client.on('mandarMensaje', (data) => {
+    client.on('mandarMensaje', (data, callback) => {
+        console.log(data);
 
         let persona = usuarios.getPersona(client.id);
 
-        client.broadcast.to(persona.room).emit('mandarMensaje', mensaje(persona.nombre, data.mensaje))
+        let mensajes = mensaje(persona.nombre, data.mensaje);
+
+        client.broadcast.to(persona.room).emit('mandarMensaje', mensajes);
+
+        callback(mensajes)
+
     })
 
 
@@ -45,10 +56,10 @@ io.on('connection', (client) => {
                 mensaje: 'No se encuentra el usuario en la base de datos'
             })
         }
-        client.broadcast.to(userDelete.room).emit('salio', {
-            usuario: 'Administrador',
-            mensaje: `El usuario ${userDelete.nombre} ha abandonado el chat`
-        });
+
+        let mensajes = mensaje('Administrador', `El usuario ${userDelete.nombre} ha abandonado el chat`);
+
+        client.broadcast.to(userDelete.room).emit('salio', mensajes);
 
         client.broadcast.to(userDelete.room).emit('lista', {
             listaUsuarios: usuarios.getPersonasPorSala(userDelete.room)
